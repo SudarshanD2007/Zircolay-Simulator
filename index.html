@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zircaloy Oxidation Lab | Interactive Investigation</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--panel2:#17243a;--line:#293a55;--text:#e8eef8;--muted:#9aabc3;--cyan:#58d5e8;--blue:#7da7ff;--orange:#ffb45c;--red:#ff7777;--green:#6dd6a2}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#0b1220,#101b2d 55%,#0b1220);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:26px max(20px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--line);background:#0b1220dd;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800}
+h1{font-size:clamp(25px,4vw,39px);line-height:1.1;margin:6px 0 8px}header p{margin:0;color:var(--muted);max-width:850px}
+main{max-width:1240px;margin:24px auto;padding:0 18px 50px}
+.notice{background:#30271b;border:1px solid #6b512c;color:#f8d9a5;border-radius:12px;padding:12px 15px;margin-bottom:18px;font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab{border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:9px 14px;border-radius:9px;cursor:pointer;font-weight:700}.tab.active{background:#18344a;border-color:#34718a;color:#c9f6ff}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:16px}.panel{background:linear-gradient(160deg,var(--panel),#101a2a);border:1px solid var(--line);border-radius:15px;padding:17px;box-shadow:0 10px 35px #0002}.panel h2{font-size:17px;margin:0 0 13px}.panel h3{font-size:14px;margin:18px 0 9px;color:#d6e5f7}
+.control{margin:13px 0}.control label{display:flex;justify-content:space-between;gap:10px;font-weight:650;font-size:13px}.control output{color:var(--cyan);font-variant-numeric:tabular-nums}.control input[type=range]{width:100%;accent-color:var(--cyan);margin:9px 0 0}.hint{font-size:11px;color:var(--muted);margin-top:2px}
+select,button{font:inherit}select{width:100%;background:#0c1728;border:1px solid var(--line);color:var(--text);padding:9px;border-radius:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.btn{background:#1a4055;color:#d7f8ff;border:1px solid #34718a;padding:9px 12px;border-radius:9px;cursor:pointer;font-weight:750}.btn.secondary{background:#182338;border-color:var(--line);color:var(--text)}.btn:hover{filter:brightness(1.15)}
+.results{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.metric{background:#0d192a;border:1px solid var(--line);border-radius:12px;padding:12px}.metric .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.metric .v{font-size:23px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}.metric .u{font-size:11px;color:var(--muted)}
+.chartgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.chartbox{background:#0c1728;border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}.chartbox h3{margin:0 0 8px;font-size:13px;color:#dce9f8}.chartbox canvas{width:100%;height:245px;display:block}.wide{grid-column:1/-1}
+.legend{display:flex;gap:13px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin:4px 0 0}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.section{display:none}.section.active{display:block}.prose{color:#c6d3e5;font-size:14px}.prose h3{color:#eaf3ff}.equation{background:#0b1727;border:1px solid var(--line);border-radius:9px;padding:11px 13px;font-family:Georgia,serif;font-size:17px;overflow:auto;color:#c8f2fa}
+.status{padding:10px 12px;border-radius:10px;background:#102b24;border:1px solid #27634c;color:#a7edc9;font-size:12px;margin-top:12px}.warn{background:#30271b;border-color:#6b512c;color:#f8d9a5}
+table{border-collapse:collapse;width:100%;font-size:12px}td,th{padding:8px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--muted)}
+footer{color:var(--muted);font-size:11px;text-align:center;margin:25px 0}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.results{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){header{position:static}.chartgrid{grid-template-columns:1fr}.wide{grid-column:auto}.results{grid-template-columns:repeat(2,1fr)}.metric .v{font-size:19px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="eyebrow">MS2280 · Transport Phenomena in Materials Processing</div>
+ <h1>Zircaloy Steam-Oxidation Lab</h1>
+ <p>An interactive investigation of oxygen transport, high-temperature oxidation, hydrogen production and the material-level consequences for nuclear fuel cladding.</p>
+</header>
+<main>
+ <div class="notice"><b>Educational model — not a reactor safety code.</b> This browser simulation separates an illustrative 1D oxygen-diffusion calculation from a user-calibrated parabolic oxidation law. It does not predict fuel failure, core damage, meltdown, radiation release or real reactor power.</div>
+ <nav class="tabs">
+  <button class="tab active" data-tab="experiment">Experiment</button>
+  <button class="tab" data-tab="results">Results & plots</button>
+  <button class="tab" data-tab="investigation">Investigation notebook</button>
+  <button class="tab" data-tab="model">Model & assumptions</button>
+ </nav>
+ <section id="experiment" class="section active">
+  <div class="layout">
+   <aside class="panel">
+    <h2>Experimental controls</h2>
+    <h3>Steam-side / thermal conditions</h3>
+    <div class="control"><label>Cladding temperature <output id="tempOut"></output></label><input id="temp" type="range" min="1000" max="1500" step="10" value="1200"><div class="hint">°C · illustrative high-temperature range for this study</div></div>
+    <div class="control"><label>Steam partial pressure <output id="steamOut"></output></label><input id="steam" type="range" min="0.1" max="10" step="0.1" value="1"><div class="hint">bar · represented through a simplified surface-supply factor</div></div>
+    <div class="control"><label>Exposure duration <output id="timeOut"></output></label><input id="duration" type="range" min="0.1" max="10" step="0.1" value="2"><div class="hint">hours</div></div>
+    <div class="control"><label>Initial oxide thickness <output id="oxideOut"></output></label><input id="oxide0" type="range" min="0" max="100" step="5" value="10"><div class="hint">µm</div></div>
+    <h3>Diffusion model parameters</h3>
+    <div class="control"><label>Effective D at 1200°C <output id="dOut"></output></label><input id="dref" type="range" min="-15" max="-10" step="0.1" value="-12"><div class="hint">log₁₀(Dref / m² s⁻¹) · effective teaching parameter, not a universal material constant</div></div>
+    <div class="control"><label>Diffusion activation energy <output id="qOut"></output></label><input id="qdiff" type="range" min="50" max="250" step="5" value="150"><div class="hint">kJ mol⁻¹</div></div>
+    <div class="control"><label>Surface oxygen concentration <output id="csOut"></output></label><input id="cs" type="range" min="0.1" max="5" step="0.1" value="2"><div class="hint">mass % · normalized boundary-condition input</div></div>
+    <h3>Oxidation-law calibration</h3>
+    <div class="control"><label>Parabolic constant at 1200°C <output id="kOut"></output></label><input id="kref" type="range" min="1" max="100" step="1" value="20"><div class="hint">µm² s⁻¹ · illustrative default; replace with a cited dataset for quantitative comparison</div></div>
+    <div class="control"><label>Oxidation activation energy <output id="qoxOut"></output></label><input id="qox" type="range" min="50" max="250" step="5" value="150"><div class="hint">kJ mol⁻¹</div></div>
+    <div class="actions"><button class="btn" id="run">Run experiment</button><button class="btn secondary" id="reset">Reset</button></div>
+    <div class="hint">Results update when you run the experiment. You can change one variable at a time to test a hypothesis.</div>
+   </aside>
+   <div>
+    <div class="results">
+     <div class="metric"><div class="k">Effective diffusivity</div><div class="v" id="mD">—</div><div class="u">m² s⁻¹</div></div>
+     <div class="metric"><div class="k">Oxide thickness</div><div class="v" id="mOx">—</div><div class="u">µm</div></div>
+     <div class="metric"><div class="k">Hydrogen generated</div><div class="v" id="mH2">—</div><div class="u">g per m² · estimated</div></div>
+     <div class="metric"><div class="k">Reaction heat</div><div class="v" id="mHeat">—</div><div class="u">kJ per m² · estimated</div></div>
+    </div>
+    <div class="chartgrid">
+     <div class="chartbox"><h3>Oxygen concentration vs depth</h3><canvas id="profile"></canvas><div class="legend"><span><i class="dot" style="background:#58d5e8"></i>Oxygen concentration</span></div></div>
+     <div class="chartbox"><h3>Oxide thickness vs exposure time</h3><canvas id="growth"></canvas><div class="legend"><span><i class="dot" style="background:#ffb45c"></i>Parabolic law</span></div></div>
+     <div class="chartbox wide"><h3>Layered cladding schematic (not to scale)</h3><div id="layers" style="padding:18px 8px 10px"></div><div class="legend"><span><i class="dot" style="background:#e6a34e"></i>ZrO₂ oxide</span><span><i class="dot" style="background:#83b7d7"></i>Oxygen-enriched metal region (schematic)</span><span><i class="dot" style="background:#66758b"></i>Unaffected substrate</span></div></div>
+    </div>
+    <div id="status" class="status">Ready. Adjust a parameter and run an experiment.</div>
+   </div>
+  </div>
+ </section>
+ <section id="results" class="section">
+  <div class="panel">
+   <h2>Results and scientific checks</h2>
+   <div class="results">
+    <div class="metric"><div class="k">Integrated oxygen inventory</div><div class="v" id="mInventory">—</div><div class="u">normalized profile units</div></div>
+    <div class="metric"><div class="k">Surface concentration</div><div class="v" id="mSurface">—</div><div class="u">mass %</div></div>
+    <div class="metric"><div class="k">Diffusion length scale</div><div class="v" id="mLength">—</div><div class="u">mm · √(Dt)</div></div>
+    <div class="metric"><div class="k">Oxidation growth rate</div><div class="v" id="mRate">—</div><div class="u">µm s⁻¹ · final instantaneous rate</div></div>
+   </div>
+   <div class="prose"><h3>Interpretation</h3><p id="interpretation">Run an experiment to populate this section.</p></div>
+   <h3>Mass and reaction estimates</h3>
+   <table><tbody id="summaryTable"></tbody></table>
+   <div class="actions"><button class="btn" id="csv">Export profile CSV</button><button class="btn secondary" id="json">Export experiment JSON</button></div>
+   <div class="status warn">The diffusion profile is a normalized single-region teaching calculation. It is not a validated multilayer oxide / α-Zr(O) / substrate solution, and its integrated concentration is not automatically equal to the stoichiometric oxygen uptake from the oxidation law.</div>
+  </div>
+ </section>
+ <section id="investigation" class="section">
+  <div class="panel">
+   <h2>Investigation notebook</h2>
+   <p class="prose">Use the controls to test one hypothesis at a time. Record the conditions and your interpretation. This is designed around an experimental-learning workflow.</p>
+   <div class="control"><label for="hypothesis">Hypothesis</label><textarea id="hypothesis" rows="3" style="width:100%;background:#0c1728;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px" placeholder="Example: Increasing temperature will increase effective diffusivity and oxide growth rate."></textarea></div>
+   <div class="control"><label for="observation">Observation / explanation</label><textarea id="observation" rows="4" style="width:100%;background:#0c1728;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px" placeholder="Describe what changed, what remained constant, and why."></textarea></div>
+   <div class="actions"><button class="btn" id="record">Record current trial</button><button class="btn secondary" id="clearNotes">Clear notebook</button></div>
+   <h3>Recorded trials</h3><div id="trials" class="prose">No trials recorded yet.</div>
+  </div>
+ </section>
+ <section id="model" class="section">
+  <div class="panel prose">
+   <h2>Model, equations and assumptions</h2>
+   <h3>1. Arrhenius temperature dependence</h3>
+   <div class="equation">D(T) = Dref exp[−Qd/R (1/T − 1/Tref)]</div>
+   <p>Here T and Tref are in kelvin. Dref is an effective diffusivity at the reference temperature of 1200°C. This lets you explore temperature sensitivity without claiming that one value applies to all Zircaloy microstructures or layers.</p>
+   <h3>2. One-dimensional transient diffusion</h3>
+   <div class="equation">∂C/∂t = D ∂²C/∂x²</div>
+   <p>The browser uses an explicit finite-difference scheme on a finite domain, with fixed surface concentration and a zero-gradient condition at the far boundary. The time step is selected to satisfy the explicit stability condition. The plotted profile is normalized and should be interpreted as a diffusion experiment, not a phase-resolved cladding prediction.</p>
+   <h3>3. Parabolic oxidation law</h3>
+   <div class="equation">x² − x₀² = k(T) · fsteam · t</div>
+   <p>k(T) is assigned an Arrhenius temperature dependence. fsteam is a deliberately simple pressure-dependent surface-supply factor. This is a teaching parameterization, not the original Cathcart–Pawel equation or a substitute for its published coefficients.</p>
+   <h3>4. Reaction stoichiometry</h3>
+   <div class="equation">Zr + 2H₂O → ZrO₂ + 2H₂</div>
+   <p>For reacted zirconium mass mZr, stoichiometry gives approximately 0.0442 kg H₂ per kg Zr. The reaction-heat estimate uses approximately 586.6 kJ per kg Zr reacted. In this interface, reacted zirconium is inferred from the simulated oxide thickness using a planar unit-area estimate and standard density assumptions.</p>
+   <h3>5. Assumptions and limitations</h3>
+   <ul>
+    <li>Planar, one-dimensional geometry; no cylindrical curvature.</li>
+    <li>Single effective diffusivity; no separate oxide and α-Zr(O) diffusivities or interface partitioning.</li>
+    <li>Isothermal exposure; no coupled temperature field or heat-transfer solution.</li>
+    <li>Steam pressure enters through a simplified surface-supply multiplier, not a detailed gas-film or chemical-potential boundary condition.</li>
+    <li>No cladding stress, creep, cracking, ballooning, rupture, hydrogen embrittlement, fuel relocation, neutronics or radioactive release model.</li>
+    <li>No prediction of reactor power, core damage or meltdown. Fission power, decay heat and oxidation heat are physically distinct quantities.</li>
+   </ul>
+   <div class="status warn">For a defensible report, replace the illustrative oxidation calibration with coefficients transcribed and checked against the exact published Cathcart–Pawel source and alloy/temperature range you cite. Do not label these defaults as Cathcart–Pawel data.</div>
+  </div>
+ </section>
+ <footer>Educational research prototype · All calculations run locally in your browser · No experiment settings control or represent a real nuclear reactor.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const controls=['temp','steam','duration','oxide0','dref','qdiff','cs','kref','qox'];
+let last=null, trials=[];
+const R=8.314462618, TREF=1473.15, RHO_ZR=6500, RHO_ZRO2=5680, MW_ZR=91.224, MW_ZRO2=123.222;
+function fmt(x,n=3){return Number(x).toLocaleString(undefined,{maximumFractionDigits:n});}
+function val(id){return parseFloat($(id).value);}
+function updateLabels(){
+ $('tempOut').textContent=val('temp')+' °C'; $('steamOut').textContent=fmt(val('steam'),1)+' bar';
+ $('timeOut').textContent=fmt(val('duration'),1)+' h'; $('oxideOut').textContent=val('oxide0')+' µm';
+ $('dOut').textContent='10^'+fmt(val('dref'),1); $('qOut').textContent=val('qdiff')+' kJ/mol';
+ $('csOut').textContent=fmt(val('cs'),1)+' mass %'; $('kOut').textContent=val('kref')+' µm²/s'; $('qoxOut').textContent=val('qox')+' kJ/mol';
+}
+controls.forEach(id=>$(id).addEventListener('input',updateLabels));updateLabels();
+function arrhenius(ref,Q,T){return ref*Math.exp(-(Q*1000/R)*(1/T-1/TREF));}
+function solve(){
+ const Tc=val('temp'), T=Tc+273.15, hours=val('duration'), seconds=hours*3600;
+ const Dref=Math.pow(10,val('dref')), D=arrhenius(Dref,val('qdiff'),T);
+ const cs=val('cs'), L=0.004, N=121, dx=L/(N-1);
+ // Stable explicit FTCS: r <= 0.45; enough steps to reach the selected exposure time.
+ const dtMax=0.44*dx*dx/D;
+ const steps=Math.max(1,Math.ceil(seconds/dtMax));
+ const dt=seconds/steps;
+ if(steps>120000){throw new Error('Selected diffusivity/time combination requires too many numerical steps. Reduce exposure time or diffusivity.');}
+ let C=new Float64Array(N), next=new Float64Array(N);
+ for(let n=0;n<steps;n++){
+  C[0]=cs;
+  for(let i=1;i<N-1;i++) next[i]=C[i]+D*dt/(dx*dx)*(C[i+1]-2*C[i]+C[i-1]);
+  next[0]=cs; next[N-1]=next[N-2];
+  let tmp=C;C=next;next=tmp;
+ }
+ C[0]=cs;
+ // User-calibrated parabolic law. Steam multiplier is explicitly illustrative.
+ const kref=val('kref'), Qox=val('qox'), k=arrhenius(kref,Qox,T);
+ const steamFactor=Math.sqrt(val('steam')); // illustrative pressure sensitivity only
+ const x0=val('oxide0'), x=Math.sqrt(x0*x0+k*steamFactor*seconds);
+ const dxOx=x-x0, oxideMeters=x*1e-6;
+ // Planar unit-area estimate from oxide volume and density, corrected for Zr mass fraction in ZrO2.
+ const mOxide=RHO_ZRO2*oxideMeters; // kg/m2
+ const mZr=mOxide*(MW_ZR/MW_ZRO2);
+ const mH2=mZr*(2.016/(MW_ZR)); // kg H2 per m2 from 2 mol H2 per mol Zr
+ const heat=mZr*586600; // J/m2
+ const rate=seconds>0?(k*steamFactor)/(2*x):0; // µm/s
+ const profile=Array.from(C);
+ const depth=Array.from({length:N},(_,i)=>i*dx);
+ let inventory=0;for(let i=0;i<N-1;i++)inventory+=(C[i]+C[i+1])*0.5*dx;
+ const diffusionLength=Math.sqrt(D*seconds);
+ const growth=[];
+ for(let j=0;j<=50;j++){let t=seconds*j/50;growth.push({t:t/3600,x:Math.sqrt(x0*x0+k*steamFactor*t)});}
+ return {Tc,T,D,Dref,Qd:val('qdiff'),hours,seconds,cs,depth,profile,inventory,diffusionLength,x,x0,dxOx,k,Qox,steam:val('steam'),steamFactor,rate,mOxide,mZr,mH2,heat,growth,steps};
+}
+function canvasPlot(id,xs,ys,opts={}){
+ const c=$(id),ctx=c.getContext('2d'),w=c.clientWidth||500,h=245,dpr=window.devicePixelRatio||1;
+ c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+ const pad={l:48,r:15,t:18,b:37},pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+ const xmin=opts.xmin??Math.min(...xs),xmax=opts.xmax??Math.max(...xs),ymin=opts.ymin??Math.min(0,...ys),ymax=opts.ymax??(Math.max(...ys)*1.08||1);
+ ctx.strokeStyle='#2b3a52';ctx.lineWidth=1;ctx.fillStyle='#91a4bf';ctx.font='10px system-ui';
+ for(let j=0;j<=4;j++){let y=pad.t+ph*j/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();let v=ymax-(ymax-ymin)*j/4;ctx.fillText(fmt(v,2),3,y+3);}
+ for(let j=0;j<=4;j++){let x=pad.l+pw*j/4;ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,h-pad.b);ctx.stroke();let v=xmin+(xmax-xmin)*j/4;ctx.fillText(fmt(v,2),x-10,h-13);}
+ ctx.strokeStyle=opts.color||'#58d5e8';ctx.lineWidth=2.5;ctx.beginPath();
+ xs.forEach((x,i)=>{let px=pad.l+(x-xmin)/(xmax-xmin||1)*pw,py=pad.t+(ymax-ys[i])/(ymax-ymin||1)*ph;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)});ctx.stroke();
+ ctx.fillStyle='#c8d6e8';ctx.font='11px system-ui';ctx.fillText(opts.xlabel||'',w/2-25,h-1);
+}
+function drawLayers(r){
+ const max=Math.max(r.x,250),oxide=Math.max(3,r.x/max*48),alpha=Math.max(5,Math.sqrt(r.diffusionLength)*140),metal=Math.max(20,100-oxide-alpha);
+ $('layers').innerHTML=`<div style="display:flex;height:66px;border-radius:9px;overflow:hidden;border:1px solid #53657d">
+ <div style="width:${oxide}%;background:#e6a34e;display:flex;align-items:center;justify-content:center;color:#172033;font-size:11px;font-weight:800">ZrO₂</div>
+ <div style="width:${alpha}%;background:#83b7d7;display:flex;align-items:center;justify-content:center;color:#102338;font-size:11px;font-weight:800">O-enriched</div>
+ <div style="flex:1;background:#66758b;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:800">Zircaloy substrate</div></div>
+ <div style="display:flex;justify-content:space-between;color:#9aabc3;font-size:11px;margin-top:6px"><span>Steam side</span><span>Cladding interior</span></div>
+ <p style="font-size:11px;color:#9aabc3;margin:8px 0 0">Schematic only: the displayed widths are visual indicators, not calculated phase-boundary positions.</p>`;
+}
+function run(){
+ try{
+  const r=solve();last=r;
+  $('mD').textContent=r.D.toExponential(2);$('mOx').textContent=fmt(r.x,1);$('mH2').textContent=fmt(r.mH2*1000,3);$('mHeat').textContent=fmt(r.heat/1000,2);
+  $('mInventory').textContent=fmt(r.inventory*1000,3);$('mSurface').textContent=fmt(r.cs,2);$('mLength').textContent=fmt(r.diffusionLength*1000,3);$('mRate').textContent=r.rate.toExponential(2);
+  canvasPlot('profile',r.depth.map(x=>x*1000),r.profile,{color:'#58d5e8',xlabel:'Depth (mm)',xmin:0,xmax:4,ymin:0,ymax:Math.max(1,r.cs*1.1)});
+  canvasPlot('growth',r.growth.map(p=>p.t),r.growth.map(p=>p.x),{color:'#ffb45c',xlabel:'Time (h)',xmin:0,xmax:r.hours,ymin:0});
+  drawLayers(r);
+  $('interpretation').textContent=`At ${r.Tc} °C, the selected effective diffusivity is ${r.D.toExponential(3)} m²/s. Over ${r.hours} h, the diffusion length scale √(Dt) is ${fmt(r.diffusionLength*1000,3)} mm. The illustrative parabolic law predicts an oxide thickness of ${fmt(r.x,2)} µm, compared with an initial ${r.x0} µm. Increasing temperature raises D and k for positive activation energies. Steam pressure affects this particular teaching model only through the stated simplified multiplier.`;
+  $('summaryTable').innerHTML=`<tr><th>Quantity</th><th>Estimate per m²</th><th>Basis</th></tr>
+  <tr><td>ZrO₂ mass formed</td><td>${fmt(r.mOxide,5)} kg</td><td>Planar oxide thickness × assumed density</td></tr>
+  <tr><td>Zr consumed</td><td>${fmt(r.mZr,5)} kg</td><td>Zr mass fraction in ZrO₂</td></tr>
+  <tr><td>H₂ generated</td><td>${fmt(r.mH2*1000,4)} g</td><td>Reaction stoichiometry</td></tr>
+  <tr><td>Oxidation reaction heat</td><td>${fmt(r.heat/1000,4)} kJ</td><td>Approx. 586.6 kJ/kg Zr reacted</td></tr>
+  <tr><td>Diffusion solver steps</td><td>${r.steps.toLocaleString()}</td><td>Explicit FTCS with stability-limited time step</td></tr>`;
+  $('status').textContent=`Experiment complete: ${r.steps.toLocaleString()} stable diffusion time steps; D = ${r.D.toExponential(3)} m²/s; predicted oxide thickness = ${fmt(r.x,2)} µm.`;
+  $('status').className='status';
+ }catch(e){$('status').textContent=e.message;$('status').className='status warn';}
+}
+function download(name,content,type){const a=document.createElement('a');const u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+$('run').onclick=run;
+$('reset').onclick=()=>{const defaults={temp:1200,steam:1,duration:2,oxide0:10,dref:-12,qdiff:150,cs:2,kref:20,qox:150};for(const [k,v] of Object.entries(defaults))$(k).value=v;updateLabels();run();};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===b.dataset.tab));if(last)requestAnimationFrame(()=>{canvasPlot('profile',last.depth.map(x=>x*1000),last.profile,{color:'#58d5e8',xlabel:'Depth (mm)',xmin:0,xmax:4,ymin:0,ymax:Math.max(1,last.cs*1.1)});canvasPlot('growth',last.growth.map(p=>p.t),last.growth.map(p=>p.x),{color:'#ffb45c',xlabel:'Time (h)',xmin:0,xmax:last.hours,ymin:0});});});
+$('csv').onclick=()=>{if(!last)return alert('Run an experiment first.');let s='depth_mm,oxygen_concentration_mass_percent\\n'+last.depth.map((d,i)=>`${d*1000},${last.profile[i]}`).join('\\n');download('zircaloy_oxygen_profile.csv',s,'text/csv');};
+$('json').onclick=()=>{if(!last)return alert('Run an experiment first.');download('zircaloy_experiment.json',JSON.stringify({...last,depth:undefined,profile:undefined,growth:last.growth},null,2),'application/json');};
+$('record').onclick=()=>{if(!last)return alert('Run an experiment first.');trials.push({id:trials.length+1,conditions:{temperature_C:last.Tc,steam_bar:last.steam,time_h:last.hours,oxide_initial_um:last.x0,D_m2_s:last.D},oxide_final_um:last.x,hydrogen_g_m2:last.mH2*1000,heat_kJ_m2:last.heat/1000,hypothesis:$('hypothesis').value,observation:$('observation').value});renderTrials();};
+$('clearNotes').onclick=()=>{if(confirm('Clear all recorded trials?')){trials=[];renderTrials();}};
+function renderTrials(){if(!trials.length){$('trials').textContent='No trials recorded yet.';return;}$('trials').innerHTML=trials.map(t=>`<div style="padding:12px;border:1px solid var(--line);border-radius:9px;margin:8px 0"><b>Trial ${t.id}</b> · ${t.conditions.temperature_C} °C · ${t.conditions.time_h} h<br>Oxide: ${fmt(t.oxide_final_um,2)} µm · H₂: ${fmt(t.hydrogen_g_m2,3)} g/m²<br><span style="color:var(--muted)">Hypothesis:</span> ${escapeHtml(t.hypothesis||'—')}<br><span style="color:var(--muted)">Observation:</span> ${escapeHtml(t.observation||'—')}</div>`).join('')+`<button class="btn secondary" onclick="downloadTrials()">Export notebook JSON</button>`;}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+window.downloadTrials=()=>download('zircaloy_investigation_notebook.json',JSON.stringify(trials,null,2),'application/json');
+window.addEventListener('resize',()=>{if(last){canvasPlot('profile',last.depth.map(x=>x*1000),last.profile,{color:'#58d5e8',xlabel:'Depth (mm)',xmin:0,xmax:4,ymin:0,ymax:Math.max(1,last.cs*1.1)});canvasPlot('growth',last.growth.map(p=>p.t),last.growth.map(p=>p.x),{color:'#ffb45c',xlabel:'Time (h)',xmin:0,xmax:last.hours,ymin:0});}});
+run();
+</script>
+</body>
+</html>
